@@ -41,12 +41,12 @@ then
   ffmpeg_filter+="concat=n=${#videos[@]}:v=1[v] -map [v]"
   ffmpeg_common+=" $ffmpeg_filter"
 fi
-ffmpeg_common+=" -c:v libx264 -an -g ${gop} -sc_threshold 0 -flags +cgop -movflags faststart"
 framerate=$(ffmpeg -i ${video[0]} 2>&1 | sed -n "s/.*, \(.*\) fp.*/\1/p")
 gop=$(echo "($framerate * $SEGMENT_SECS) / 1" |bc)
 dash_time=$(echo "($gop * 1000 / $framerate)" |bc)
 echo "Frame rate ${framerate}, GOP ${gop}"
 buf_size_1=$(echo "$MAX_RATE_1 * 2" |bc)
+ffmpeg_common+=" -c:v libx264 -an -g ${gop} -sc_threshold 0 -flags +cgop -movflags faststart"
 ffmpegcmd="$ffmpeg_videos -nostats"
 ffmpegcmd+=" $ffmpeg_common"
 ffmpegcmd+=" -crf ${CRF_1} -maxrate ${MAX_RATE_1}M -bufsize ${buf_size_1}M ${VIDEO_OUT}_1.mp4"
