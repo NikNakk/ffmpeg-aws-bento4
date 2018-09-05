@@ -6,7 +6,7 @@ RUN apt-get -yqq update \
    &&  apt-get clean -y
 RUN wget http://zebulon.bok.net/Bento4/binaries/Bento4-SDK-1-5-1-624.x86_64-unknown-linux.zip \
    &&  unzip Bento4-SDK-1-5-1-624.x86_64-unknown-linux.zip \
-   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/* /usr/local/bin/
+   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/* /usr/local/
 RUN wget -O - https://bootstrap.pypa.io/get-pip.py | python
 RUN pip install awscli
 RUN yes | pip uninstall pip setuptools
