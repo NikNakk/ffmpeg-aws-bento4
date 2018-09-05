@@ -6,7 +6,11 @@ RUN apt-get -yqq update \
    &&  apt-get clean -y
 RUN wget http://zebulon.bok.net/Bento4/binaries/Bento4-SDK-1-5-1-624.x86_64-unknown-linux.zip \
    &&  unzip Bento4-SDK-1-5-1-624.x86_64-unknown-linux.zip \
-   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/* /usr/local/ \
+   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/bin/* /usr/local/bin/ \
+   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/lib/* /usr/local/lib/ \
+   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/include/* /usr/local/include/ \
+   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/docs /usr/local/ \
+   &&  mv Bento4-SDK-1-5-1-624.x86_64-unknown-linux/utils /usr/local/ \
    &&  rm -r Bento4-SDK-1-5-1-624.x86_64-unknown-linux \
    &&  rm Bento4-SDK-1-5-1-624.x86_64-unknown-linux.zip
 RUN wget -O - https://bootstrap.pypa.io/get-pip.py | python
