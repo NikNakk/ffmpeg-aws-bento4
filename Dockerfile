@@ -15,4 +15,5 @@ RUN apt-get -yq remove wget unzip \
    &&  apt-get clean -y \
    &&  rm -rf /var/lib/apt/lists
 COPY process-video /usr/local/bin/process-video
+RUN chmod +x /usr/local/bin/process-video
 ENTRYPOINT []
