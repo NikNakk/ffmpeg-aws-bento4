@@ -1,0 +1,94 @@
+#!/bin/bash
+set -e
+echo "Parameters passed in:"
+declare -a params=("BUCKET_IN" "VIDEO_IN" "BUCKET_OUT" "VIDEO_OUT" "SEGMENT_SECS" "CRF_1" "MAX_RATE_1" "RESOLUTION_1" "CRF_2" "MAX_RATE_2" "RESOLUTION_2" "CRF_3" "MAX_RATE_3" "RESOLUTION_3" "TEST_ONLY")
+for param in "${params[@]}"
+do
+  echo "${param}"="${!param}"
+done
+
+if [ ! -v BUCKET_IN ]
+then
+  echo "Bucket in not supplied"
+  exit 1
+fi
+
+if [ ! -v VIDEO_IN ]
+then
+  echo "Video in not supplied"
+  exit 1
+fi
+
+IFS=' ' read -r -a videos <<< "${VIDEO_IN}"
+
+ffmpeg_videos=""
+ffmpeg_filter="-filter_complex "
+ffmpeg_common=""
+echo "Retrieving video(s) from S3"
+for index in "${!videos[@]}"
+do
+  video=${videos[index]}
+  echo "Retrieving video ${index}/${#videos[@]} ${video}..."
+  if [ ! -v TEST_ONLY ]
+  then
+    aws s3 cp "s3://$BUCKET_IN/$video" "$video"
+  fi
+  ffmpeg_videos+="-i ${video} "
+  ffmpeg_filter+="[${index}:v:0]"
+done
+if [ ${#videos[@]} -gt 1 ]
+then
+  ffmpeg_filter+="concat=n=${#videos[@]}:v=1[v] -map [v]"
+  ffmpeg_common+=" $ffmpeg_filter"
+fi
+ffmpeg_common+=" -c:v libx264 -an -g ${gop} -sc_threshold 0 -flags +cgop -movflags faststart"
+framerate=$(ffmpeg -i ${video[0]} 2>&1 | sed -n "s/.*, \(.*\) fp.*/\1/p")
+gop=$(echo "($framerate * $SEGMENT_SECS) / 1" |bc)
+dash_time=$(echo "($gop * 1000 / $framerate)" |bc)
+echo "Frame rate ${framerate}, GOP ${gop}"
+buf_size_1=$(echo "$MAX_RATE_1 * 2" |bc)
+ffmpegcmd="$ffmpeg_videos -nostats"
+ffmpegcmd+=" $ffmpeg_common"
+ffmpegcmd+=" -crf ${CRF_1} -maxrate ${MAX_RATE_1}M -bufsize ${buf_size_1}M ${VIDEO_OUT}_1.mp4"
+bentocmd="--no-split --hls ${VIDEO_OUT}_1f.mp4"
+
+mkdir -p "${VIDEO_OUT}"
+
+if [ -v CRF_2 ]
+then
+  buf_size_2=$(echo "$MAX_RATE_2 * 2" |bc)
+  ffmpegcmd+=" $ffmpeg_common"
+  ffmpegcmd+=" -crf ${CRF_1} -maxrate ${MAX_RATE_2}M -bufsize ${buf_size_2}M ${VIDEO_OUT}_2.mp4"
+  bentocmd+=' '${VIDEO_OUT}'_2f.mp4'
+  if [ -v CRF_3 ]
+  then
+    buf_size_3=$(echo "$MAX_RATE_3 * 2" |bc)
+    ffmpegcmd+=" $ffmpeg_common"
+    ffmpegcmd+=" -crf ${CRF_3} -maxrate ${MAX_RATE_3}M -bufsize ${buf_size_3}M ${VIDEO_OUT}_3.mp4"
+    bentocmd+=' '${VIDEO_OUT}'_3f.mp4'
+  fi
+fi
+echo ffmpeg $ffmpegcmd
+if [ ! -v TEST_ONLY ]
+then
+  ffmpeg $ffmpegcmd
+  rm "$videos"
+  mp4fragment "${VIDEO_OUT}_1.mp4" "${VIDEO_OUT}_1f.mp4"
+  rm "${VIDEO_OUT}_1.mp4"
+  if [ -v CRF_2 ]
+  then
+    mp4fragment "${VIDEO_OUT}_2.mp4" "${VIDEO_OUT}_2f.mp4"
+    rm "${VIDEO_OUT}_2.mp4"
+    if [ -v CRF_3 ]
+    then
+      mp4fragment "${VIDEO_OUT}_3.mp4" "${VIDEO_OUT}_3f.mp4"
+      rm "${VIDEO_OUT}_3.mp4"
+    fi
+  fi
+fi
+echo mp4dash $bentocmd
+if [ ! -v TEST_ONLY ]
+then
+  mp4dash $bentocmd
+  aws s3 sync "output" "s3://${BUCKET_OUT}/${VIDEO_OUT}"
+fi
