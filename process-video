@@ -92,5 +92,5 @@ then
   mp4dash $bentocmd
   aws s3 sync "output" "s3://${BUCKET_OUT}/${VIDEO_OUT}"
   duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${VIDEO_OUT}_1f.mp4")
-  aws s3 put-object-tagging --bucket "${BUCKET_OUT}" --key "${VIDEO_OUT}/master.m3u8" --tagging "TagSet=[{Key=duration,Value=duration}]"
+  aws s3api put-object-tagging --bucket "${BUCKET_OUT}" --key "${VIDEO_OUT}/master.m3u8" --tagging "TagSet=[{Key=duration,Value=duration}]"
 fi
