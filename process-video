@@ -46,7 +46,7 @@ gop=$(echo "($framerate * $SEGMENT_SECS) / 1" |bc)
 dash_time=$(echo "($gop * 1000 / $framerate)" |bc)
 echo "Frame rate ${framerate}, GOP ${gop}"
 buf_size_1=$(echo "$MAX_RATE_1 * 2" |bc)
-ffmpeg_common+=" -c:v libx264 -an -g ${gop} -sc_threshold 0 -flags +cgop -movflags faststart"
+ffmpeg_common+=" -c:v libx264 -an -g ${gop} -sc_threshold 0 -flags +cgop -movflags faststart -pix_fmt yuv420p"
 ffmpegcmd="$ffmpeg_videos -nostats"
 ffmpegcmd+=" $ffmpeg_common"
 ffmpegcmd+=" -crf ${CRF_1} -maxrate ${MAX_RATE_1}M -bufsize ${buf_size_1}M ${VIDEO_OUT}_1.mp4"
