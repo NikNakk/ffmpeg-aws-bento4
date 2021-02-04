@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -x
 echo "Parameters passed in:"
 declare -a params=("BUCKET_IN" "VIDEO_IN" "BUCKET_OUT" "VIDEO_OUT" "SEGMENT_SECS" "CRF_1" "MAX_RATE_1" "RESOLUTION_1" "CRF_2" "MAX_RATE_2" "RESOLUTION_2" "CRF_3" "MAX_RATE_3" "RESOLUTION_3" "TEST_ONLY")
 for param in "${params[@]}"
