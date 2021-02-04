@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -x
 echo "Parameters passed in:"
 declare -a params=("BUCKET_IN" "VIDEO_IN" "BUCKET_OUT" "VIDEO_OUT" "SEGMENT_SECS" "CRF_1" "MAX_RATE_1" "RESOLUTION_1" "CRF_2" "MAX_RATE_2" "RESOLUTION_2" "CRF_3" "MAX_RATE_3" "RESOLUTION_3" "TEST_ONLY")
 for param in "${params[@]}"
@@ -50,7 +51,7 @@ ffmpeg_common+=" -c:v libx264 -an -g ${gop} -sc_threshold 0 -flags +cgop -movfla
 ffmpegcmd="$ffmpeg_videos -nostats"
 ffmpegcmd+=" $ffmpeg_common"
 ffmpegcmd+=" -crf ${CRF_1} -maxrate ${MAX_RATE_1}M -bufsize ${buf_size_1}M ${VIDEO_OUT}_1.mp4"
-bentocmd="--no-split --hls ${VIDEO_OUT}_1f.mp4"
+bentocmd="--no-split --use-segment-list --hls ${VIDEO_OUT}_1f.mp4"
 
 mkdir -p "${VIDEO_OUT}"
 
