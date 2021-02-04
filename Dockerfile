@@ -6,6 +6,7 @@ RUN apt-get -yqq update \
    &&  apt-get clean -y
 RUN wget http://zebulon.bok.net/Bento4/binaries/Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip \
    &&  unzip Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip \
+   &&  sed -i 's/return check_output(cmd)/return check_output(cmd, universal_newlines=True)/g' Bento4-SDK-1-6-0-637.x86_64-unknown-linux/utils/mp4utils.py \
    &&  mv Bento4-SDK-1-6-0-637.x86_64-unknown-linux/bin/* /usr/local/bin/ \
    &&  mv Bento4-SDK-1-6-0-637.x86_64-unknown-linux/lib/* /usr/local/lib/ \
    &&  mv Bento4-SDK-1-6-0-637.x86_64-unknown-linux/include/* /usr/local/include/ \
